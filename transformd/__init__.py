@@ -1,4 +1,4 @@
-"""Repository for TransforMD, ,  aa pipelines for integrating molecular dynamics simulation and machine learning."""
+"""Repository for TransforMD, a pipeline for integrating molecular dynamics simulations and machine learning."""
 
 # Add imports here
 from .featurizer import *
