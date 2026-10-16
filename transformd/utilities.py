@@ -1,5 +1,5 @@
 '''
-util.py
+utilities.py
 
 Misc. utility functions
 '''
