@@ -2,6 +2,6 @@
 
 # Add imports here
 from .featurizer import canvas, mean
-from .util import title_case
+from .utilities import title_case
 
-from ._version import __version__
+from ._version import __vers
