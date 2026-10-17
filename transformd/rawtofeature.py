@@ -1,6 +1,11 @@
+"""Class with functions for converting raw MD data into formats for downstream tasks"""
 
-
-"""Provide the primary functions."""
+class Featurizer():
+    '''
+    Set of methods for transforming raw MD data into formats for downstream tasks, like ML.
+    '''
+    
+    
 
 
 def canvas(with_attribution=True):
