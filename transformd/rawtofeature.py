@@ -1,59 +1,373 @@
-"""Class with functions for converting raw MD data into formats for downstream tasks"""
+"""Functions for calculating raw MD features and converting them into formats appropriate for downstream tasks (e.g. ML)
+Input to functions in this script are MD trajectories and raw data from MD trajectories."""
 
-class Featurizer():
+import mdtraj as md
+import numpy as np
+
+def get_traj_info(traj):
     '''
-    Set of methods for transforming raw MD data into formats for downstream tasks, like ML.
-    '''
-    
-    
-
-
-def canvas(with_attribution=True):
-    """
-    Placeholder function to show example docstring (NumPy format).
-
-    Replace this function and doc string for your own project.
+    Returns trajectory information including:
+    - number of frames
+    - number of residues
+    - FASTA sequence
 
     Parameters
-    ----------
-    with_attribution : bool, Optional, default: True
-        Set whether or not to display who the quote is from.
+    ---
+    traj: Trajectory
+        Loaded trajectory object
 
     Returns
-    -------
-    quote : str
-        Compiled string including quote and optional attribution.
-    """
-
-    quote = "The code is but a canvas to our imagination."
-    if with_attribution:
-        quote += "\n\t- Adapted from Henry David Thoreau"
-    return quote
-
-
-def mean(num_list):
+    ---
+    n_frames: int, n_residues: int, seq: str
     '''
-    Calculate the average of a list of numbers
+
+    n_frames = traj.n_frames
+    n_residues = traj.n_residues
+    seq = traj.topology.to_fasta()
+
+    return n_frames, n_residues, seq
+
+def select_frames(traj, first_frame: int, last_frame: int):
+    '''
+    Cuts loaded trajectory into a chunk of certain frames.
 
     Parameters
-    _____
-    num_list: list
-        The list to take average of
+    ___
+    traj: Trajectory
+        Loaded trajectory object
 
     Returns
-    ____
-    mean_list: float
-        The mean of the list
-
-    Examples
-    ____
-    >> mean([1,2,3])
-    2.0
+    ---
+    traj_chunk: Trajectory
+        Part of a loaded trajectory
     '''
-    mean_list = sum(num_list) / len(num_list)
-    return mean_list
+    #Todo: implement this in a way that takes in user settings
+    pass
 
+def time_average(raw_data: np.ndarray, n_frames: int, n_res: int, seq: str):
+    '''
+    Get time average for raw MD data.
+    Returns output based on shape of MD data.
 
-if __name__ == "__main__":
-    # Do something if this file is invoked on its own
-    print(canvas())
+    Parameters
+    ---
+    raw_data: np.ndarray
+        MD data calculated using e.g. MDtraj or similar
+
+    Returns
+    ---
+    time_average_arr: np.ndarray
+        Feature data averaged over frames.
+    n_frames: int
+        Number of frames
+
+    Example
+    ---
+    (n_res, n_frames) -> (n_res,)
+    (n_frames,) -> (1,)
+    (n_res,) -> (n_res,)
+    '''
+    #get trajectory info for calculating average and formatting for saving
+    #convert raw_data to np.ndarray just in case
+    raw_data = np.asarray(raw_data)
+    raw_data_shape = raw_data.shape
+
+    if raw_data_shape == (n_frames, n_res):
+        return np.mean(raw_data, axis=0) # (n_res,)
+    elif raw_data_shape == (n_frames,):
+        return np.array([np.mean(arr)]) # (1,)
+    elif raw_data_shape == (n_res,):
+        return raw_data
+    else:
+        print(f'Array of shape {raw_data_shape} provided. Expected ({n_frames},{n_res}), ({n_frames},), or ({n_res},).', flush=True)
+        print(f'Cannot average output for sequence {seq}')
+        return None
+    #Todo: make it so the data immediately gets appended to a file? Or make a wrapper to the file somehow?
+
+#Todo: not sure where to put this but need a way to keep track of MD features
+registered_methods = []
+def register(func):
+    '''
+    Add a decorator for registering MD-analysis functions.
+    '''
+    #record the name of every registered function
+    registered_methods.append(func.__name__)
+    return func
+
+@register
+def sasa_per_residue(traj):
+    '''
+    Returns ndarray (n_frames, n_residues)
+    with the solvent accessible area (shrake-rupley) for each residue of each frame.
+    '''
+    sasa = md.shrake_rupley(traj, probe_radius=0.14,mode='residue')
+    return sasa
+
+@register
+def hbond_wn(traj):
+    '''
+    Returns ndarray (n_frames, n_residues)
+    with a count of the number of hydrogen bonds based on Wernet Nilsson cutoffs
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    hbond_count = np.zeros((n_frames, n_res))
+
+    wn_list = md.wernet_nilsson(traj) #returns list of len n_frames
+    #each item in list is an array with dimensions (n_hbonds, 3)
+    #this takes a while to calculate
+
+    for frame_idx, bonds in enumerate(wn_list):
+        if len(bonds) == 0:
+            continue
+        donor_atoms = bonds[:, 0]
+        acceptor_atoms = bonds[:, 2]
+
+        donors = [traj.topology.atom(d).residue.index for d in donor_atoms]
+        acceptors = [traj.topology.atom(a).residue.index for a in acceptor_atoms]
+
+        np.add.at(hbond_count[frame_idx], donors, 1)
+        np.add.at(hbond_count[frame_idx], acceptors, 1)
+
+    return hbond_count #(n_frames, n_res)
+
+@register
+def hbond_ks(traj, energy_threshold=-0.5):
+    '''Compute number of Kabsch-Sander hbonds each residue participates in at each frame.
+    Returns: numpy ndarray of shape (n_frames, n_res)
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    hbond_count = np.zeros((n_frames, n_res))
+
+    ks_matrices = md.kabsch_sander(traj) #returns n_frames list of sparse matrices with dimensions (n_res, n_res)
+
+    for frame_idx, matrix in enumerate(ks_matrices):
+        #convert to coo format to access data
+        coo = matrix.tocoo()
+
+        #check whether hbond energy is below threshold (it should be)
+        active_bonds = coo.data < energy_threshold
+
+        donors = coo.row[active_bonds]
+        acceptors = coo.col[active_bonds]
+
+        np.add.at(hbond_count[frame_idx], donors, 1)
+        np.add.at(hbond_count[frame_idx], acceptors, 1)
+
+    return hbond_count #(n_frames, n_res)
+
+@register
+def hbond_bh(traj):
+    '''
+    Compute number of Baker-Hubbard hydrogen bonds each residue participates in over the entire trajectory
+    Returns numpy ndarray of shape (n_res,)
+    '''
+    n_res = traj.n_residues
+    hbond_count = np.zeros((n_res, 2)) #for storing counts
+    #set residue numbers from zero in left column
+    for i in range(n_res):
+        hbond_count[i,0] = i
+
+    hbonds_bh = md.baker_hubbard(traj)
+
+    for hbond in hbonds_bh:
+        res_donor = traj.topology.atom(hbond[0]).residue.index
+        res_acceptor = traj.topology.atom(hbond[2]).residue.index
+        #add residues to count
+        #Todo: Perhaps take an average rather than summation?
+        hbond_count[res_donor, 1] += 1
+        hbond_count[res_acceptor, 1] += 1
+
+    by_res_hbond_bh = hbond_count[:,1]  #take only count values
+
+    return by_res_hbond_bh # (n_res,)
+
+@register
+def rmsf_ca(traj):
+    '''
+    Returns ndarray (n_residues,) with each RMSF of the alpha carbon of each residue.
+    '''
+    ca_indices = traj.topology.select('protein and name CA')
+    traj_align = md.Trajectory.superpose(traj, traj, frame=0, atom_indices=ca_indices)
+    ca_rmsf = md.rmsf(traj_align, traj_align, frame=0, atom_indices=ca_indices)
+    return ca_rmsf #(n_res,)
+
+@register
+def residue_contacts(traj, cutoff=0.6, scheme='ca'):
+    '''
+    Compute number of heavy atom contacts between pairs at each frame
+    Note: this one takes a long time to compute.
+    Returns:
+    nparray of shape (n_frames, n_res)
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    contact_count = np.zeros((n_frames, n_res))
+
+    #create array of pairs separated by 3 residues (arbitrary)
+    pairs = []
+    for i in range(n_res):
+        for j in range(i+3, n_res):
+            pairs.append([i,j])
+    pairs = np.array(pairs)
+
+    if len(pairs) == 0: #no residues
+        return contact_count
+
+    contact_dist = md.compute_contacts(traj, contacts=pairs, scheme=scheme)[0]
+
+    contacts = contact_dist < cutoff
+
+    #map contacts to individual residues
+    for idx, (res1, res2) in enumerate(pairs):
+        active_frames = contacts[:, idx]
+        contact_count[active_frames, res1] += 1
+        contact_count[active_frames, res2] += 1
+
+    return contact_count
+
+def res_rmsd(traj):
+    '''
+    Compute RMSD of each residue in each frame compared to the first frame
+    Returns numpy ndarray of shape (n_frames, n_res)
+    '''
+    superpose_traj = traj.superpose(traj, 0)
+
+    n_frames = superpose_traj.n_frames
+    n_res = superpose_traj.n_residues
+    res_rmsds = np.zeros((n_frames, n_res))
+
+    for i in range(n_res):
+        atom_indices = superpose_traj.topology.select(f'resid {i} and not element H')
+        if len(atom_indices) == 0:
+            continue
+
+        res_rmsds[:, i] = md.rmsd(superpose_traj, superpose_traj, frame=0, atom_indices=atom_indices)
+
+    return res_rmsds #(n_frames, n_res)
+
+def res_cos_psi(traj):
+    '''
+    Compute cosine of psi angle.
+     Both sine and cosine are calculated to avoid large jumps in angle degrees.
+     Returns numpy array of shape (n_frames, n_res)
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    indices, angles = md.compute_psi(traj) #indices: (n_res, 4) angles: (n_frames, n_res)
+
+    #take cosine and sine of angles to create continuous and circular labels
+    cos_angles = np.cos(angles) #(n_res,)
+    cos_psi = np.zeros((n_frames, n_res))
+
+    for idx, atom_quad in enumerate(indices):
+        #for psi angle, Ni - CAi - Ci - Ni+1
+        res_idx = traj.topology.atom(atom_quad[0]).residue.index
+        #slice across residues and add values for each frame
+        cos_psi[:, res_idx] = cos_angles[:, idx]
+
+    return cos_psi
+
+def res_sin_psi(traj):
+    '''
+    Compute sine of psi angle.
+     Both sine and cosine are calculated to avoid large jumps in angle degrees.
+     Returns numpy array of shape (n_frames, n_res)
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    indices, angles = md.compute_psi(traj) #indices: (n_res, 4) angles: (n_frames, n_res)
+
+    #take cosine and sine of angles to create continuous and circular labels
+    sin_angles = np.sin(angles)
+    sin_psi = np.zeros((n_frames, n_res))
+
+    for idx, atom_quad in enumerate(indices):
+        #for psi angle, Ni - CAi - Ci - Ni+1
+        res_idx = traj.topology.atom(atom_quad[0]).residue.index
+        #slice across residues and add values for each frame
+        sin_psi[:, res_idx] = sin_angles[:, idx]
+
+    return sin_psi
+
+def res_cos_phi(traj):
+    '''
+    Comput cosine of phi angle
+    Both sine and cosine are calculated to avoid large jumps in angle degrees.
+    Returns: ndarray of shape (n_frames, n_res)
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    indices, angles = md.compute_phi(traj)
+    cos_angles = np.cos(angles)
+    cos_phi = np.zeros((n_frames, n_res))
+
+    for idx, atom_quad in enumerate(indices):
+        #for phi angle, Ci-1 - Ni - CAi - Ci
+        res_idx = traj.topology.atom(atom_quad[1]).residue.index
+        cos_phi[:, res_idx] = cos_angles[:, idx]
+
+    return cos_phi
+
+def res_sin_phi(traj):
+    '''
+    Comput cosine of phi angle
+    Returns: ndarray of shape (n_frames, n_res)
+    '''
+    n_frames = traj.n_frames
+    n_res = traj.n_residues
+    indices, angles = md.compute_phi(traj)
+    sin_angles = np.sin(angles)
+    sin_phi = np.zeros((n_frames, n_res))
+
+    for idx, atom_quad in enumerate(indices):
+        #for phi angle, Ci-1 - Ni - CAi - Ci
+        res_idx = traj.topology.atom(atom_quad[1]).residue.index
+        sin_phi[:, res_idx] = sin_angles[:, idx]
+
+    return sin_phi
+
+def res_cos_chi1(traj):
+    '''
+    Compute cosine of Chi1 side chain angle
+    Both sine and cosine are calculated to avoid large jumps in angle degrees (0 degrees and 360 are the same)
+    Returns: ndarray of shape (n_frames, n_res)
+    '''
+    indices, angles = md.compute_chi1(traj)
+    cos_angles = np.cos(angles)
+
+    #create empty arrays for data
+    cos_chi1 = np.zeros((traj.n_frames, traj.n_residues))
+
+    for idx, atom_quad in enumerate(indices):
+        #for chi1, N - Ca - Cb - Cg
+        res_idx = traj.topology.atom(atom_quad[1]).residue.index
+        cos_chi1[:, res_idx] = cos_angles[:, idx]
+
+    return cos_chi1
+
+def res_sin_chi1(traj):
+    '''
+    Compute sine of Chi1 side chain angle
+    Returns: two ndarrays of shape (n_frames, n_res)
+    '''
+    indices, angles = md.compute_chi1(traj)
+    sin_angles = np.sin(angles)
+
+    #create empty arrays for data
+    sin_chi1 = np.zeros((traj.n_frames, traj.n_residues))
+
+    for idx, atom_quad in enumerate(indices):
+        #for chi1, N - Ca - Cb - Cg
+        res_idx = traj.topology.atom(atom_quad[1]).residue.index
+        sin_chi1[:, res_idx] = sin_angles[:, idx]
+
+    return sin_chi1
+
+def rg(traj):
+    '''
+    Returns ndarray (n_frames,) with radius of gyration values for each from.
+    '''
+    rg = md.compute_rg(traj)
+    return rg
