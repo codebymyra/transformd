@@ -5,7 +5,7 @@ Misc. utility functions
 '''
 from pathlib import Path
 import pickle
-from isee_framework.main import Thread
+import isee_framework
 
 def get_working_dir(working_dir: str):
     '''
@@ -26,7 +26,7 @@ def get_working_dir(working_dir: str):
 
     return wd_path
 
-def get_trajs_in_working_dir(wd_path: Path):
+def get_trajs_in_working_dir(working_dir: str):
     '''
     Takes in the wd_path from get_working_dir().
     Return a list of trajectory:topology file pairs based on the restart.pkl file in the working directory.
@@ -49,6 +49,7 @@ def get_trajs_in_working_dir(wd_path: Path):
     # specific to isEE
     tops = []
     trajs = []
+    wd_path = get_working_dir(working_dir)
     restart_file = wd_path / 'restart.pkl'
 
     with open(restart_file, 'rb') as f:
@@ -73,37 +74,3 @@ def get_trajs_in_working_dir(wd_path: Path):
     #print(f'{len(pair_list)} pairs found.\n {pair_list}', flush=True)  # for debugging
     return pair_list
 
-
-
-
-
-
-def title_case(sentence):
-    '''
-    Convert a string to title case.
-    Title case means that the first letter of each word is capitalized, and all other letters in the word are lowercase. 
-
-    Parameters
-    ____
-    sentence: str
-        String to be converted to title case
-    Returns
-    _____
-    ret: str
-        String converted to title case
-    Example
-    _____
-    >>title_case('ThIS is A sTRiNg to BE ConvERTed.')
-    'This Is A String To Be Converted.'
-    '''
-
-    ret = sentence[0].upper()
-
-    # Loop through the rest of the characters
-    for i in range(1, len(sentence)):
-        if sentence[i - 1] == ' ':
-            ret = ret + sentence[i].upper()
-        else:
-            ret = ret + sentence[i].lower()
-
-    return ret
