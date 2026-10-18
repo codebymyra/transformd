@@ -1,9 +1,31 @@
-"""Functions for calculating raw MD features and converting them into formats appropriate for downstream tasks (e.g. ML)
-Input to functions in this script are MD trajectories and raw data from MD trajectories."""
+"""
+    Functions for calculating raw MD features.
+    Here, I return time-averaged data.
+
+    Parameters
+    ---
+    traj: mdtraj.Trajectory
+        Loaded trajectory object.
+
+    Returns
+    ---
+    time_average_arr: np.ndarray
+        Feature data averaged over frames.
+
+    Example
+    ---
+    (n_res, n_frames) -> (n_res,)
+    (n_frames,) -> (1,)
+    (n_res,) -> (n_res,)
+"""
+#Todo: note. previously I performed time-averaging after returning raw data.
+#Todo: This was so that I could save raw data if desired.
+#However, implementation was tricky, so I have switched to using time-average data for now.
 
 import mdtraj as md
 import numpy as np
 
+#Pre-processing
 def get_traj_info(traj):
     '''
     Returns trajectory information including:
@@ -44,45 +66,7 @@ def select_frames(traj, first_frame: int, last_frame: int):
     #Todo: implement this in a way that takes in user settings
     pass
 
-def time_average(raw_data: np.ndarray, n_frames: int, n_res: int, seq: str):
-    '''
-    Get time average for raw MD data.
-    Returns output based on shape of MD data.
-
-    Parameters
-    ---
-    raw_data: np.ndarray
-        MD data calculated using e.g. MDtraj or similar
-
-    Returns
-    ---
-    time_average_arr: np.ndarray
-        Feature data averaged over frames.
-    n_frames: int
-        Number of frames
-
-    Example
-    ---
-    (n_res, n_frames) -> (n_res,)
-    (n_frames,) -> (1,)
-    (n_res,) -> (n_res,)
-    '''
-    #get trajectory info for calculating average and formatting for saving
-    #convert raw_data to np.ndarray just in case
-    raw_data = np.asarray(raw_data)
-    raw_data_shape = raw_data.shape
-
-    if raw_data_shape == (n_frames, n_res):
-        return np.mean(raw_data, axis=0) # (n_res,)
-    elif raw_data_shape == (n_frames,):
-        return np.array([np.mean(arr)]) # (1,)
-    elif raw_data_shape == (n_res,):
-        return raw_data
-    else:
-        print(f'Array of shape {raw_data_shape} provided. Expected ({n_frames},{n_res}), ({n_frames},), or ({n_res},).', flush=True)
-        print(f'Cannot average output for sequence {seq}')
-        return None
-    #Todo: make it so the data immediately gets appended to a file? Or make a wrapper to the file somehow?
+#Registered methods
 
 #Todo: not sure where to put this but need a way to keep track of MD features
 registered_methods = []
@@ -101,7 +85,7 @@ def sasa_per_residue(traj):
     with the solvent accessible area (shrake-rupley) for each residue of each frame.
     '''
     sasa = md.shrake_rupley(traj, probe_radius=0.14,mode='residue')
-    return sasa
+    return np.mean(sasa, axis=0)
 
 @register
 def hbond_wn(traj):
@@ -129,7 +113,7 @@ def hbond_wn(traj):
         np.add.at(hbond_count[frame_idx], donors, 1)
         np.add.at(hbond_count[frame_idx], acceptors, 1)
 
-    return hbond_count #(n_frames, n_res)
+    return np.mean(hbond_count, axis=0) #(n_frames, n_res)
 
 @register
 def hbond_ks(traj, energy_threshold=-0.5):
@@ -155,7 +139,7 @@ def hbond_ks(traj, energy_threshold=-0.5):
         np.add.at(hbond_count[frame_idx], donors, 1)
         np.add.at(hbond_count[frame_idx], acceptors, 1)
 
-    return hbond_count #(n_frames, n_res)
+    return np.mean(hbond_count, axis=0) #(n_frames, n_res)
 
 @register
 def hbond_bh(traj):
@@ -225,7 +209,7 @@ def residue_contacts(traj, cutoff=0.6, scheme='ca'):
         contact_count[active_frames, res1] += 1
         contact_count[active_frames, res2] += 1
 
-    return contact_count
+    return np.mean(contact_count, axis=0) # n_frames, n_residues
 
 def res_rmsd(traj):
     '''
@@ -245,7 +229,7 @@ def res_rmsd(traj):
 
         res_rmsds[:, i] = md.rmsd(superpose_traj, superpose_traj, frame=0, atom_indices=atom_indices)
 
-    return res_rmsds #(n_frames, n_res)
+    return np.mean(res_rmsds, axis=0) #(n_frames, n_res)
 
 def res_cos_psi(traj):
     '''
@@ -267,7 +251,7 @@ def res_cos_psi(traj):
         #slice across residues and add values for each frame
         cos_psi[:, res_idx] = cos_angles[:, idx]
 
-    return cos_psi
+    return np.mean(cos_psi, axis=0)
 
 def res_sin_psi(traj):
     '''
@@ -289,7 +273,7 @@ def res_sin_psi(traj):
         #slice across residues and add values for each frame
         sin_psi[:, res_idx] = sin_angles[:, idx]
 
-    return sin_psi
+    return np.mean(sin_psi, axis=0)
 
 def res_cos_phi(traj):
     '''
@@ -308,7 +292,7 @@ def res_cos_phi(traj):
         res_idx = traj.topology.atom(atom_quad[1]).residue.index
         cos_phi[:, res_idx] = cos_angles[:, idx]
 
-    return cos_phi
+    return np.mean(cos_phi, axis=0)
 
 def res_sin_phi(traj):
     '''
@@ -326,7 +310,7 @@ def res_sin_phi(traj):
         res_idx = traj.topology.atom(atom_quad[1]).residue.index
         sin_phi[:, res_idx] = sin_angles[:, idx]
 
-    return sin_phi
+    return np.mean(sin_phi, axis=0)
 
 def res_cos_chi1(traj):
     '''
@@ -345,7 +329,7 @@ def res_cos_chi1(traj):
         res_idx = traj.topology.atom(atom_quad[1]).residue.index
         cos_chi1[:, res_idx] = cos_angles[:, idx]
 
-    return cos_chi1
+    return np.mean(cos_chi1, axis=0)
 
 def res_sin_chi1(traj):
     '''
@@ -363,11 +347,11 @@ def res_sin_chi1(traj):
         res_idx = traj.topology.atom(atom_quad[1]).residue.index
         sin_chi1[:, res_idx] = sin_angles[:, idx]
 
-    return sin_chi1
+    return np.mean(sin_chi1, axis=0)
 
 def rg(traj):
     '''
     Returns ndarray (n_frames,) with radius of gyration values for each from.
     '''
     rg = md.compute_rg(traj)
-    return rg
+    return np.array([np.mean(rg)])
