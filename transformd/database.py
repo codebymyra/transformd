@@ -60,6 +60,31 @@ class SequenceDatabase:
         if feature_name not in self.data[sequence]:
             self.data[sequence][feature_name] = []
 
+
         #append new data
         self.data[sequence][feature_name].append(np.asarray(data, dtype=np.float32))
+
+    def aggregate_data(self, sequence: str, feature_name: str):
+        '''
+        Returns a single numpy array for a sequence.
+        This aggregates multiple numpy arrays together if there are more than one (e.g. two trajectories that had the same sequence).
+
+        Parameters
+        ---
+        sequence: str
+            Protein sequence for an entry
+        feature_name: str
+            Name of MD feature
+
+        Returns
+        ---
+        numpy array representing the aggregate feature data (e.g. mean, or itself)
+        '''
+        sequence = sequence.strip().upper()
+        array_list = self.data[sequence][feature_name] #todo: add test. should return list of arrays
+
+        #if there is more than one entry, return the mean. Otherwise, return the array.
+        if len(array_list) > 0:
+            return np.mean(array_list, axis=0)
+        return np.asarray(array_list, dtype=np.float32)
 
