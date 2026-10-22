@@ -49,36 +49,26 @@ def get_traj_info(traj):
 
     return n_frames, n_residues, seq
 
-def select_frames(traj, first_frame: int, last_frame: int):
-    '''
-    Cuts loaded trajectory into a chunk of certain frames.
-
-    Parameters
-    ___
-    traj: Trajectory
-        Loaded trajectory object
-
-    Returns
-    ---
-    traj_chunk: Trajectory
-        Part of a loaded trajectory
-    '''
-    #Todo: implement this in a way that takes in user settings
-    pass
-
 #Registered methods
 
 #Todo: not sure where to put this but need a way to keep track of MD features
-registered_methods = []
-def register(func):
-    '''
-    Add a decorator for registering MD-analysis functions.
-    '''
-    #record the name of every registered function
-    registered_methods.append(func.__name__)
+FEATURES = {} #dict for storing current feature names
+def feature(func):
+    #record names of methods with "feature" decorator.
+    FEATURES[func.__name__] = func
     return func
 
-@register
+@feature
+def rmsf_ca(traj):
+    '''
+    Returns ndarray (n_residues,) with each RMSF of the alpha carbon of each residue.
+    '''
+    ca_indices = traj.topology.select('protein and name CA')
+    traj_align = md.Trajectory.superpose(traj, traj, frame=0, atom_indices=ca_indices)
+    ca_rmsf = md.rmsf(traj_align, traj_align, frame=0, atom_indices=ca_indices)
+    return ca_rmsf #(n_res,)
+
+@feature
 def sasa_per_residue(traj):
     '''
     Returns ndarray (n_frames, n_residues)
@@ -87,7 +77,7 @@ def sasa_per_residue(traj):
     sasa = md.shrake_rupley(traj, probe_radius=0.14,mode='residue')
     return np.mean(sasa, axis=0)
 
-@register
+@feature
 def hbond_wn(traj):
     '''
     Returns ndarray (n_frames, n_residues)
@@ -115,7 +105,7 @@ def hbond_wn(traj):
 
     return np.mean(hbond_count, axis=0) #(n_frames, n_res)
 
-@register
+@feature
 def hbond_ks(traj, energy_threshold=-0.5):
     '''Compute number of Kabsch-Sander hbonds each residue participates in at each frame.
     Returns: numpy ndarray of shape (n_frames, n_res)
@@ -141,7 +131,7 @@ def hbond_ks(traj, energy_threshold=-0.5):
 
     return np.mean(hbond_count, axis=0) #(n_frames, n_res)
 
-@register
+
 def hbond_bh(traj):
     '''
     Compute number of Baker-Hubbard hydrogen bonds each residue participates in over the entire trajectory
@@ -167,17 +157,8 @@ def hbond_bh(traj):
 
     return by_res_hbond_bh # (n_res,)
 
-@register
-def rmsf_ca(traj):
-    '''
-    Returns ndarray (n_residues,) with each RMSF of the alpha carbon of each residue.
-    '''
-    ca_indices = traj.topology.select('protein and name CA')
-    traj_align = md.Trajectory.superpose(traj, traj, frame=0, atom_indices=ca_indices)
-    ca_rmsf = md.rmsf(traj_align, traj_align, frame=0, atom_indices=ca_indices)
-    return ca_rmsf #(n_res,)
 
-@register
+
 def residue_contacts(traj, cutoff=0.6, scheme='ca'):
     '''
     Compute number of heavy atom contacts between pairs at each frame
@@ -299,6 +280,7 @@ def res_sin_phi(traj):
     Comput cosine of phi angle
     Returns: ndarray of shape (n_frames, n_res)
     '''
+    #Todo: address the fact that the first or last residue for angles is going to be 0.
     n_frames = traj.n_frames
     n_res = traj.n_residues
     indices, angles = md.compute_phi(traj)
