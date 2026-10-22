@@ -6,6 +6,7 @@ Misc. utility functions
 from pathlib import Path
 import pickle
 import isee_framework
+from transformd import features
 
 def get_working_dir(working_dir: str):
     '''
@@ -73,4 +74,108 @@ def get_trajs_in_working_dir(working_dir: str):
 
     #print(f'{len(pair_list)} pairs found.\n {pair_list}', flush=True)  # for debugging
     return pair_list
+
+def load_or_create_log_for_traj(log_file: str):
+    '''
+    Loads a log file containing information about which trajectories have been processed,
+    and which features have been calculated for that trajectory.
+
+    It either opens a log file or creates a new one if one does not exist.
+
+    Parameters
+    ---
+    log_file: str
+        Log file path to be loaded or created.
+
+    Returns
+    ---
+    log: dict
+        From a pickled dictionary. If the log is new, the dictionary will be empty.
+        Otherwise, it contains {trajectory filename: [feature list]}
+    '''
+    path = Path(log_file)
+    #if log doesn't exist yet, create it
+    if not path.exists():
+        starter_log = {}
+        with open(path, 'wb') as f:
+            pickle.dump(starter_log, f)
+        return starter_log
+
+    #else, return existing log
+    with open(path, 'rb') as f:
+        return pickle.load(f)
+
+def check_log_for_traj(traj_file: str, log_file: str):
+    '''
+    Opens a log file to check whether a trajectory has been processed and if so, which features remain to be calculated.
+    Currently, the log file is a pickled dictionary containing {trajectory file: [list of features]}
+    Parameters
+    ---
+    traj_file: str
+       File path to the trajectory to be processed.
+    log: dict
+        A returned log dictionary from load_or_create_log_for_traj().
+
+    Returns
+    ---
+    feature_list: list
+       Returns a list of features to be calculated. If there is no entry, the full FEATURES list is returned.
+       If all features have been calculated, an empty list is returned.
+    '''
+    #get updated list of features
+    feature_list = list(features.FEATURES.keys())
+    log_dict = load_or_create_log_for_traj(log_file)
+
+    #search for traj_file
+    if traj_file not in log_dict.keys():
+        return feature_list
+    else:
+        finished_features = list(log_dict[traj_file])
+        remaining_features = list(set(feature_list) - set(finished_features))
+        return remaining_features
+
+def update_log_for_traj(traj_file: str, log_file: str, feature_list: list):
+    '''
+    Once a feature or multiple features are calculated, update the status for that trajectory.
+
+    Parameters
+    ---
+    traj_file: str
+    Trajectory that is being calculated on/updated.
+    log_file: str
+    Log file path to be updated.
+    feature_list: list
+    List of features to be updated.
+
+    Returns
+    ---
+    Saves updated pickled log file (dict).
+    '''
+    #load log file
+    log_dict = load_or_create_log_for_traj(log_file)
+
+    #create empty entry and list if trajectory has not been processed before
+    if traj_file not in log_dict.keys():
+        log_dict[traj_file] = []
+
+    log_dict[traj_file].extend(feature_list)
+
+    with open(log_file, 'wb') as f:
+        pickle.dump(log_dict, f)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

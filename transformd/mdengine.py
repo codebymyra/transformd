@@ -35,12 +35,32 @@ class MDEngine(ABC):
         '''
         pass
 
+    def select_frames(self, first_frame: int, last_frame: int):
+        '''
+        Cuts loaded trajectory into a chunk of certain frames.
+
+        Parameters
+        ___
+        traj: Trajectory
+            Loaded trajectory object
+
+        Returns
+        ---
+        traj_chunk: Trajectory
+            Part of a loaded trajectory
+        '''
+        # Todo: implement this in a way that takes in user settings
+        #traj = load_trajectory(self)
+        #Then, cut trajectory based on frist and last frame
+        #Finally, return truncated trajectory object
+        pass
+
 class AdaptAmber(MDEngine):
     '''
     Adapter class for Amber MDEngine.
     '''
 
-    def load_trajectory(self, traj_file: str, top_file: str, stride: int):
+    def load_trajectory(self, traj_file: str, top_file: str, stride=1):
         '''
         Returns loaded trajectory.
 
@@ -69,7 +89,7 @@ class AdaptAmber(MDEngine):
             print(f'Amber trajectory {traj_file} could not be loaded: {e}. Trying NetCDF-specific loader.')
 
             try:
-                traj = md.load_netcdf(traj_file, top)
+                traj = md.load_netcdf(traj_file, top=top, stride=stride)
             except Exception as e:
                 print(f'Amber trajectory {traj_file} could not be loaded: {e}. Skipping.')
                 return None

@@ -50,6 +50,7 @@ load_feature_database(feature_filepath)
     feature = features.calculate_feature # feature, numpy array
     database.add_data_to_sequence_database(seq, feature)
     database.save_sequence_database(filepath)  # nested dictionary
+    database.get_aggregated_data #numpy array to be added to downstream ML files
 
 
 
