@@ -1,52 +1,27 @@
-"""Provide the primary functions."""
+'''
+Add any functions related to converting aggregated data from SequenceDatabase into a different format for downstream tasks.
+Inputs are:
+protein sequence: str
+feature name: str
+data: numpy array of dimensions (1,) or (n_residues,)
+'''
+
+class Featurizer(object):
 
 
-def canvas(with_attribution=True):
-    """
-    Placeholder function to show example docstring (NumPy format).
 
-    Replace this function and doc string for your own project.
+#CNN:
+#get a single sequence - label value
+#apend these seq-label values to their respective files
+#split out data for each individual feature
+#save out data
+#load data in the future to adjust
 
-    Parameters
-    ----------
-    with_attribution : bool, Optional, default: True
-        Set whether or not to display who the quote is from.
-
-    Returns
-    -------
-    quote : str
-        Compiled string including quote and optional attribution.
-    """
-
-    quote = "The code is but a canvas to our imagination."
-    if with_attribution:
-        quote += "\n\t- Adapted from Henry David Thoreau"
-    return quote
-
-
-def mean(num_list):
-    '''
-    Calculate the average of a list of numbers
-
-    Parameters
-    _____
-    num_list: list
-        The list to take average of
-
-    Returns
-    ____
-    mean_list: float
-        The mean of the list
-
-    Examples
-    ____
-    >> mean([1,2,3])
-    2.0
-    '''
-    mean_list = sum(num_list) / len(num_list)
-    return mean_list
-
-
-if __name__ == "__main__":
-    # Do something if this file is invoked on its own
-    print(canvas())
+#transformer:
+#if the data is by-residue (more than dim 1),
+#split out sequence into individual string/letters in a numpy array
+#below that, append each of the aggregated by-residue feature arrays
+#we need to keep the order of features constant. Maybe by implementing a dictionary?
+#turn a sequence entry into a feature format
+#save out data
+#load data in the future to adjust
