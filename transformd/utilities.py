@@ -75,7 +75,7 @@ def get_trajs_in_working_dir(working_dir: str):
     #print(f'{len(pair_list)} pairs found.\n {pair_list}', flush=True)  # for debugging
     return pair_list
 
-def load_or_create_log_for_traj(log_file: str):
+def load_or_create_log_for_traj(log_dir: str):
     '''
     Loads a log file containing information about which trajectories have been processed,
     and which features have been calculated for that trajectory.
@@ -84,8 +84,8 @@ def load_or_create_log_for_traj(log_file: str):
 
     Parameters
     ---
-    log_file: str
-        Log file path to be loaded or created.
+    log_dir:
+        Directory where the log file should be stored.
 
     Returns
     ---
@@ -93,6 +93,8 @@ def load_or_create_log_for_traj(log_file: str):
         From a pickled dictionary. If the log is new, the dictionary will be empty.
         Otherwise, it contains {trajectory filename: [feature list]}
     '''
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
+    log_file = Path(log_dir) / 'trajectory_log.pkl'
     path = Path(log_file)
     #if log doesn't exist yet, create it
     if not path.exists():
@@ -105,7 +107,7 @@ def load_or_create_log_for_traj(log_file: str):
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def check_log_for_traj(traj_file: str, log_file: str):
+def get_features_for_traj(traj_file: str, log_dict: dict):
     '''
     Opens a log file to check whether a trajectory has been processed and if so, which features remain to be calculated.
     Currently, the log file is a pickled dictionary containing {trajectory file: [list of features]}
@@ -113,7 +115,7 @@ def check_log_for_traj(traj_file: str, log_file: str):
     ---
     traj_file: str
        File path to the trajectory to be processed.
-    log: dict
+    log_dict: dict
         A returned log dictionary from load_or_create_log_for_traj().
 
     Returns
@@ -124,7 +126,6 @@ def check_log_for_traj(traj_file: str, log_file: str):
     '''
     #get updated list of features
     feature_list = list(features.FEATURES.keys())
-    log_dict = load_or_create_log_for_traj(log_file)
 
     #search for traj_file
     if traj_file not in log_dict.keys():
@@ -162,8 +163,6 @@ def update_log_for_traj(traj_file: str, log_file: str, feature_list: list):
 
     with open(log_file, 'wb') as f:
         pickle.dump(log_dict, f)
-
-
 
 
 
