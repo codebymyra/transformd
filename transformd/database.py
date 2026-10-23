@@ -30,17 +30,20 @@ class SequenceDatabase:
     - convert raw dictionary into SequenceEntry object
 
     '''
-    def __init__(self, filepath: str):
-        self.filepath = Path(filepath) #to database file
+    def __init__(self, filedir: str):
+        self.filedir = Path(filedir).mkdir(parents=True, exist_ok=True) #to database file
         self.data = {}
 
     def load_pickle(self):
         '''
         Loads database from disk or creates one if it doesn't exist yet
         '''
+        filepath = self.filedir / 'raw_data.pkl'
         if self.filepath.exists():
             with open(self.filepath, 'rb') as f:
                 self.data = pickle.load(f)
+        else:
+            self.data = {}
 
     def save_pickle(self):
         temp_pkl = self.filepath.with_suffix('.tmp')
