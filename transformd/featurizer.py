@@ -9,9 +9,81 @@ data: numpy array of dimensions (1,) or (n_residues,)
 from pathlib import Path
 import pickle
 import numpy as np
+from datetime import datetime
+
+class ArrayDatabase:
+    '''
+    Converts a Sequence Database object into a numpy array.
+
+    Example
+    seq1: {feature1: [arr1], feature2: [arr2]} is converted to
+    np.array([
+    [s e q u e n c e],
+    [feature 1 array],
+    [feature 2 array]
+    ])
+
+    This only works on by-residue features.
+    '''
+    def __init__(self, filedir: str):
+        time = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.filedir = Path(filedir)
+        self.datafile = self.filedir / f'{time}_features.npy'
+
+    @staticmethod
+    def by_residue(sequence: str, data: np.ndarray):
+        '''
+        Returns boolean based on whether the data received are by-residue or by-protein.
+        '''
+        assert data.shape[0] > 0, f'Received an empty array for {sequence}'
+        assert data.ndim == 1, f'Expected a 1D array but got {data.ndim}D'
+        n_vals = data.shape[0]
+        if n_vals == len(sequence):
+            return True
+        return False
+
+    def load_npy(self):
+        '''
+        Load numpy array from file.
+        If the file does not yet exist, return an empty list to be converted later.
+        '''
+        if self.datafile.is_file():
+            data_arr = np.load(self.datafile)
+        data_arr = []
+
+    def save_npy(self, data: np.ndarray):
+        '''
+        Save numpy array to file.
+        '''
+        np.save(self.datafile, data, allow_pickle=False)
+
+    def add_agg_data(self, sequence: str, seq_dict: dict):
+        '''
+        Add aggregated data for a sequence to a numpy array.
+
+        Parameters
+        ---
+        sequence: str
+            Protein sequence of interest
+        seq_dict: dict
+            Dictionary entry from Sequence Database
+        '''
+        pass
+
+
+#spaghetti coding what I want to do to turn raw data into numpy array for transformer
+#map features to specific rows of a list t obe turned into an array.
+#how to add features later without causing trouble, or
+
+
+
+
+
+
+
 
 #I'm not making this a class because I don't want to initialize an object; I just want to perform functions on loaded data.
-class ConvertIndividualFiles:
+class ByFeatureDatabase:
     '''
     Functions responsible for converting data from a SequenceDatabase to data split into sequence - label pairs.
     Resulting files are pickled dictionaries with 'sequence': [single label]
@@ -49,6 +121,7 @@ class ConvertIndividualFiles:
         '''
         Get a single sequence-label pair and add it to a dataset.
         If the input array has dimensions (n_res,), the values will be split out to by-residue files.
+        This automatically saves the updated dictionary using the save_dict function in this class.
 
         Parameters
         ---
@@ -79,7 +152,7 @@ class ConvertIndividualFiles:
         if n_vals == 1: #for by-protein features
             data_dict[sequence] = data
             self.save_dict(feature_name, data_dict)
-        else: #by-residue features
+        elif len(sequence) == n_vals: #by-residue features
             for res in range(n_vals):
                 res_feature_name = f'{feature_name}_res_{res}'
                 data_dict[sequence] = data[res]
