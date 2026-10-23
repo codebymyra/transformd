@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 test_path_1d = 'transformd/tests/test_data/1d_data'
-test_file = featurizer.ConvertIndividualFiles(test_path_1d)
+test_file = featurizer.ByFeatureDatabase(test_path_1d)
 def test_add_individual_feature_data():
     test_data = np.array([0.24038284, 0.90880023, 0.46224285, 0.4249765 , 0.10644279])
     test_dict = {'hi': np.array([1,2,3,4,5])}
@@ -25,3 +25,4 @@ def test_add_individual_feature_data():
         assert isinstance(test_dict, dict)
         assert len(test_dict) == 2
         #todo: add a different sequence, add the same sequence again, then check that the number of entries is correct
+        #todo: check that the values/labels within the dictionary are single values
