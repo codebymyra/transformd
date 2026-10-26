@@ -5,8 +5,6 @@ import numpy as np
 from transformd import features
 import mdtraj as md
 import pytest
-from transformd import mdengine
-
 #todo: load a trajectory for testing
 
 def test_get_traj_info():
@@ -45,8 +43,9 @@ def test_rmsf_ca():
 
     top = md.load_prmtop(topfile)
     traj = md.load(trajfile, top=top)
-
-    arr = features.FEATURES['rmsf_ca'](traj)
+    feat_name = 'rmsf_ca'
+    md_feature_functions = features.MDFeatureCalculator()
+    arr = getattr(md_feature_functions, feat_name)(traj)
     assert arr.dtype == np.float32
     assert arr.shape == (109,)
     assert arr[0] == pytest.approx(0.12114067, abs=1e-5)
