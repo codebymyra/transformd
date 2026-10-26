@@ -82,7 +82,7 @@ class AdaptAmber(MDEngine):
             top = md.load_prmtop(top_file)
         except Exception as e:
             print(f'Amber topology {top_file} could not be loaded:{e}')
-            return #do I need a return statement? 
+            return None#todo: o I need a return statement?
         try:
             traj = md.load(traj_file, top=top, stride=stride)
         except Exception as e:

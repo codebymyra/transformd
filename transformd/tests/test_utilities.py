@@ -1,7 +1,7 @@
 import os
 import tempfile
 import transformd
-from pathlib import Path, PurePath
+from pathlib import PurePath
 
 def test_get_working_dir():
     #create a temporary directory and test to see if it exists
@@ -15,10 +15,14 @@ def test_get_trajs_in_working_dir():
     #assert list format
     #assert that each item in the list has two files
     test_working_dir = 'transformd/tests/test_data/test_working_directory'
-    pair_list = transformd.get_trajs_in_working_dir(test_working_dir)
-    assert isinstance(pair_list, List), f'Did not return a list.'
-    assert len(pair_list) > 0, f'List of trajectory file pairs is empty.'
-    for item in pair_list:
-        assert len(item) == 2, f'{item} should have exactly 2 files'
-        assert isinstance(item[0], str), f'{item[0]} should be a string'
-        assert isinstsance(item[1], str), f'{item[1]} should be a string'
+    traj_dict = transformd.get_trajs_in_working_dir(test_working_dir)
+    assert isinstance(traj_dict, dict), f'Did not return a dictionary.'
+    assert len(traj_dict.keys()) > 0 and len(traj_dict.values()) > 0, f'Dict of trajectory file pairs is empty.'
+    for top, trajs in traj_dict.items():
+        assert isinstance(top, str), 'Topology is not a string.'
+        assert isinstance(trajs, list), 'Trajectories is not a list.'
+
+
+
+
+

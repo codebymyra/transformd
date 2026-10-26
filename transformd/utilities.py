@@ -5,7 +5,7 @@ Misc. utility functions
 '''
 from pathlib import Path
 import pickle
-import isee_framework
+from isee_framework.main import Thread
 from transformd import features
 
 def get_working_dir(working_dir: str):
@@ -27,10 +27,12 @@ def get_working_dir(working_dir: str):
 
     return wd_path
 
+#todo: right now assumes corresponding file order between topology and trajectory files in restart.pkl. This will break if this isn't the case
 def get_trajs_in_working_dir(working_dir: str):
     '''
     Takes in the wd_path from get_working_dir().
     Return a list of trajectory:topology file pairs based on the restart.pkl file in the working directory.
+    Note: this currently assumes 1 trajectory per topology file, which might not always be the case.
 
     Parameters
     ___
@@ -38,13 +40,13 @@ def get_trajs_in_working_dir(working_dir: str):
         String of working directory path. To be converted to Path object.
     Returns
     ___
-    pair_list: list
-        List of topology:trajectory pairs from the restart.pkl file located in the working directory.
+    file_dict: dict
+        Dictionary object with keys: topology files, values: corresponding trajectories.
 
     Example
     ___
     >>get_working_dir('working')
-    [(traj_tleap.prmtop_0, traj_0.nc), (traj_tleap.prmtop_1, traj_1.nc)]
+    {'nucb_5omt_state1.rst7_WT_tleap.prmtop': ['nucb_5omt_state1.rst7_WT_0.nc']}
     '''
 
     # specific to isEE
@@ -58,22 +60,21 @@ def get_trajs_in_working_dir(working_dir: str):
     #print(f'Opened {restart_file}', flush=True)
 
     for i, thread in enumerate(restart):
-        top_files = thread.history.tops
-        traj_files = thread.history.trajs
-        #print(f'Found {len(top_files)} top files and {len(traj_files)} traj files in thread {i}.', flush=True)
-        for top in top_files:
-            tops.extend(top)
-        for traj in traj_files:
-            trajs.extend(traj)
+        top_files = restart[i].history.tops
+        tops.extend(top_files)
+        traj_files = restart[i].history.trajs
+        trajs.extend(traj_files)
 
     # assert that the number of trajs and tops should be the same
     assert len(tops) == len(trajs), (
         f'Different number of trajectories ({len(trajs)}) and topology files ({len(tops)}).')
 
-    pair_list = list(zip(tops, trajs))
+    file_dict = {}
+    for i, top in enumerate(tops):
+        file_dict[top] = trajs[i]
 
-    #print(f'{len(pair_list)} pairs found.\n {pair_list}', flush=True)  # for debugging
-    return pair_list
+    return file_dict
+
 
 def load_or_create_log_for_traj(log_dir: str):
     '''

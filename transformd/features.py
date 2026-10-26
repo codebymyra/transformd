@@ -54,7 +54,7 @@ def get_traj_info(traj):
 
 #Todo: not sure where to put this but need a way to keep track of MD features
 FEATURES = {} #dict for storing current feature names
-def calculate_feature(func):
+def feature(func):
     #record names of methods with "feature" decorator.
     FEATURES[func.__name__] = func
     return func

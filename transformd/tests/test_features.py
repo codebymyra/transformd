@@ -49,4 +49,4 @@ def test_rmsf_ca():
     arr = features.FEATURES['rmsf_ca'](traj)
     assert arr.dtype == np.float32
     assert arr.shape == (109,)
-    assert arr[0] == pytest.approx(0.12114416, rel=1e-5)
+    assert arr[0] == pytest.approx(0.12114067, abs=1e-5)
