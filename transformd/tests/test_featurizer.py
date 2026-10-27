@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 
 
-test_path_1d = 'transformd/tests/test_data/1d_data'
+test_path_1d = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/1d_data'
 test_file = featurizer.ByFeatureDatabase(test_path_1d)
 def test_add_individual_feature_data():
     test_data = np.array([0.24038284, 0.90880023, 0.46224285, 0.4249765 , 0.10644279])

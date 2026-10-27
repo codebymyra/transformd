@@ -10,6 +10,7 @@ from pathlib import Path
 import pickle
 import numpy as np
 from datetime import datetime
+from database import SequenceDatabase
 
 class ArrayDatabase:
     '''
@@ -49,7 +50,9 @@ class ArrayDatabase:
         '''
         if self.datafile.is_file():
             data_arr = np.load(self.datafile)
-        data_arr = []
+        else:
+            data_arr = []
+        return data_arr
 
     def save_npy(self, data: np.ndarray):
         '''
@@ -57,18 +60,47 @@ class ArrayDatabase:
         '''
         np.save(self.datafile, data, allow_pickle=False)
 
-    def add_agg_data(self, sequence: str, seq_dict: dict):
+    def find_array(self, feature_array: np.ndarray):
+        '''
+        Searches all the trajectory arrays for a specific sequence.
+        '''
+        pass
+        # todo
+
+    #todo: turn aggregated data into an array format
+    def seq_db_to_feature_db(self, sequence: str, seq_dict: SequenceDatabase, feature_name: str):
         '''
         Add aggregated data for a sequence to a numpy array.
+        Converts dictionary into a numpy array.
 
         Parameters
         ---
-        sequence: str
-            Protein sequence of interest
         seq_dict: dict
-            Dictionary entry from Sequence Database
+            Dictionary entry from Sequence Database. Format:
+            'sequence': {feature1: [[nparray]], feature2: [[nparray]]}, 'sequence2': {feature1: [[nparray], [nparray]], feature2: [[nparray], [nparray]]}
+
+        Returns
+        ---
+        data_array: numpy array
+            (n_features, n_residues) array containing features for a given trajectory.
+
         '''
         pass
+
+
+
+
+        def append_array(self, data_array: np.ndarray):
+            '''
+            Loads the feature array.
+            Append the array from dict_to_array to a loaded larger array.
+            Save the updated array.
+            '''
+            pass
+            #todo
+
+
+
 
 
 #spaghetti coding what I want to do to turn raw data into numpy array for transformer

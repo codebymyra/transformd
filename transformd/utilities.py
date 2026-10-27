@@ -6,7 +6,8 @@ Misc. utility functions
 from pathlib import Path
 import pickle
 from isee_framework.main import Thread
-from transformd import features
+import features
+#from transformd import features
 
 def get_working_dir(working_dir: str):
     '''
@@ -49,16 +50,19 @@ def get_trajs_in_working_dir(working_dir: str):
     {'nucb_5omt_state1.rst7_WT_tleap.prmtop': ['nucb_5omt_state1.rst7_WT_0.nc']}
     '''
 
-    # specific to isEE
+
     tops = []
     trajs = []
     wd_path = get_working_dir(working_dir)
-    restart_file = wd_path / 'restart.pkl'
+    restart_file = wd_path / 'restart.pkl' #specific to isEE
 
     with open(restart_file, 'rb') as f:
         restart = pickle.load(f)
     #print(f'Opened {restart_file}', flush=True)
 
+    for thread in restart:
+        traj_files = thread.history.trajs
+        top_files = thread.history.trajs
     for i, thread in enumerate(restart):
         top_files = restart[i].history.tops
         tops.extend(top_files)

@@ -14,8 +14,9 @@ def test_get_working_dir():
 def test_get_trajs_in_working_dir():
     #assert list format
     #assert that each item in the list has two files
-    test_working_dir = 'transformd/tests/test_data/test_working_directory'
+    test_working_dir = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory'
     traj_dict = transformd.get_trajs_in_working_dir(test_working_dir)
+    print(traj_dict)
     assert isinstance(traj_dict, dict), f'Did not return a dictionary.'
     assert len(traj_dict.keys()) > 0 and len(traj_dict.values()) > 0, f'Dict of trajectory file pairs is empty.'
     for top, trajs in traj_dict.items():

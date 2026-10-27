@@ -32,13 +32,13 @@ class SequenceDatabase:
     '''
     def __init__(self, filedir: str):
         self.filedir = Path(filedir).mkdir(parents=True, exist_ok=True) #to database file
+        self.filepath = self.filedir / 'raw_data.pkl'
         self.data = {}
 
     def load_pickle(self):
         '''
         Loads database from disk or creates one if it doesn't exist yet
         '''
-        filepath = self.filedir / 'raw_data.pkl'
         if self.filepath.exists():
             with open(self.filepath, 'rb') as f:
                 self.data = pickle.load(f)
@@ -66,6 +66,7 @@ class SequenceDatabase:
 
         #append new data
         self.data[sequence][feature_name].append(np.asarray(data, dtype=np.float32))
+
 
     def aggregate_data(self, sequence: str, feature_name: str):
         '''

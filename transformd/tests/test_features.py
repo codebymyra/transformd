@@ -8,8 +8,8 @@ import pytest
 #todo: load a trajectory for testing
 
 def test_get_traj_info():
-    topfile = 'transformd/tests/test_data/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
-    trajfile = 'transformd/tests/test_data/nucb_5omt_state1_WT_short.nc'
+    topfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
+    trajfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc_short.nc'
 
     top = md.load_prmtop(topfile)
     traj = md.load(trajfile, top=top)
@@ -38,8 +38,9 @@ def test_rmsf_ca():
     '''
     #todo: link this to the loading trajectory function I defined in mdengine
     #todo: make sure that when I save values for ML, I only take the first 5 decimals or so because weird errors happen after that
-    topfile = 'transformd/tests/test_data/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
-    trajfile = 'transformd/tests/test_data/nucb_5omt_state1_WT_short.nc'
+
+    topfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
+    trajfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc_short.nc'
 
     top = md.load_prmtop(topfile)
     traj = md.load(trajfile, top=top)
@@ -48,4 +49,4 @@ def test_rmsf_ca():
     arr = getattr(md_feature_functions, feat_name)(traj)
     assert arr.dtype == np.float32
     assert arr.shape == (109,)
-    assert arr[0] == pytest.approx(0.12114067, abs=1e-5)
+    assert arr[0] == pytest.approx(0.14217, abs=1e-5)
