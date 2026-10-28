@@ -12,7 +12,7 @@ def test_load_trajectory():
     This tests whether an Amber-formatted netcdf trajectory can be loaded.
     '''
     test_top = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
-    test_traj = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc_short.nc'
+    test_traj = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc'
 
     top = md.load_prmtop(test_top)
     assert isinstance(top, md.Topology), f'Topology {test_top} could not be loaded as Amber topology object'

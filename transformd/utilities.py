@@ -33,7 +33,8 @@ def get_trajs_in_working_dir(working_dir: str):
     '''
     Takes in the wd_path from get_working_dir().
     Return a list of trajectory:topology file pairs based on the restart.pkl file in the working directory.
-    Note: this currently assumes 1 trajectory per topology file, which might not always be the case.
+    Note: this assumes the order of topology and trajectory files in restart.pkl correspond with each other.
+    This might not be the case and in that case the code will break.
 
     Parameters
     ___
@@ -60,24 +61,20 @@ def get_trajs_in_working_dir(working_dir: str):
         restart = pickle.load(f)
     #print(f'Opened {restart_file}', flush=True)
 
+    pairs = []
     for thread in restart:
-        traj_files = thread.history.trajs
-        top_files = thread.history.trajs
-    for i, thread in enumerate(restart):
-        top_files = restart[i].history.tops
-        tops.extend(top_files)
-        traj_files = restart[i].history.trajs
-        trajs.extend(traj_files)
+        traj_files = thread.history.trajs #nested lists of trajectories corresponding to base topology
+        top_files = thread.history.tops
+        assert len(traj_files) == len(top_files), f'Number of topology files ({len(top_files)}) does not match number of trajectory files ({len(traj_files)})'
 
-    # assert that the number of trajs and tops should be the same
-    assert len(tops) == len(trajs), (
-        f'Different number of trajectories ({len(trajs)}) and topology files ({len(tops)}).')
+        #todo: probably should add a try/except block for cases when trajectories are missing
+        for top_idx, top in enumerate(top_files):
+            associated_trajs = traj_files[top_idx] #e.g. [protein_0.nc, protein_1.nc]
+            for traj_idx, traj in enumerate(associated_trajs):
+                top_name = f'{top}_{traj_idx}'
+                pairs.append((top_name, traj))
 
-    file_dict = {}
-    for i, top in enumerate(tops):
-        file_dict[top] = trajs[i]
-
-    return file_dict
+    return pairs
 
 
 def load_or_create_log_for_traj(log_dir: str):
@@ -140,7 +137,7 @@ def get_features_for_traj(traj_file: str, log_dict: dict):
         remaining_features = list(set(feature_list) - set(finished_features))
         return remaining_features
 
-def update_log_for_traj(traj_file: str, log_file: str, feature_list: list):
+def update_log_for_traj(traj_file: str, log_dir: str, feature_list: list):
     '''
     Once a feature or multiple features are calculated, update the status for that trajectory.
 
@@ -148,8 +145,8 @@ def update_log_for_traj(traj_file: str, log_file: str, feature_list: list):
     ---
     traj_file: str
     Trajectory that is being calculated on/updated.
-    log_file: str
-    Log file path to be updated.
+    log_dir: str
+    Directory where the log file is located.
     feature_list: list
     List of features to be updated.
 
@@ -158,7 +155,7 @@ def update_log_for_traj(traj_file: str, log_file: str, feature_list: list):
     Saves updated pickled log file (dict).
     '''
     #load log file
-    log_dict = load_or_create_log_for_traj(log_file)
+    log_dict = load_or_create_log_for_traj(log_dir)
 
     #create empty entry and list if trajectory has not been processed before
     if traj_file not in log_dict.keys():
@@ -166,12 +163,12 @@ def update_log_for_traj(traj_file: str, log_file: str, feature_list: list):
 
     log_dict[traj_file].extend(feature_list)
 
+    log_file = Path(log_dir) / 'trajectory_log.pkl' #todo: make this less repeated and breakable
     with open(log_file, 'wb') as f:
         pickle.dump(log_dict, f)
 
 
-
-
+#todo: move all pickle loading adn saving to utilities, instead of in Database and Featurizer?
 
 
 

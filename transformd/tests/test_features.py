@@ -9,12 +9,12 @@ import pytest
 
 def test_get_traj_info():
     topfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
-    trajfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc_short.nc'
+    trajfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc'
 
     top = md.load_prmtop(topfile)
     traj = md.load(trajfile, top=top)
 
-    n_frames, n_residues, seq = features.get_traj_info(traj) #should return n_frames, n_residues, seq
+    seq, n_frames, n_residues = features.get_traj_info(traj) #should return n_frames, n_residues, seq
     assert isinstance(n_frames, int)
     assert n_frames > 0
     assert isinstance(n_residues, int)
@@ -40,7 +40,7 @@ def test_rmsf_ca():
     #todo: make sure that when I save values for ML, I only take the first 5 decimals or so because weird errors happen after that
 
     topfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_tleap.prmtop_0'
-    trajfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc_short.nc'
+    trajfile = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory/nucb_5omt_state1.rst7_WT_0.nc'
 
     top = md.load_prmtop(topfile)
     traj = md.load(trajfile, top=top)

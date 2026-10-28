@@ -47,7 +47,7 @@ def get_traj_info(traj):
     n_residues = traj.n_residues
     seq = traj.topology.to_fasta()[0]
 
-    return n_frames, n_residues, seq
+    return seq, n_frames, n_residues
 
 #must add a new row every time a feature is added
 #dictionary to keep track of order of data when it is changed to array format

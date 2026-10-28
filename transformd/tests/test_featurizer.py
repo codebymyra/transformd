@@ -15,7 +15,7 @@ def test_add_individual_feature_data():
     test_dict = {'hi': np.array([1,2,3,4,5])}
     feature_name = 'test'
     test_seq = 'ASDF'
-    test_file.add_individual_feature_data(test_dict, feature_name, test_seq, test_data)
+    test_file.add_individual_feature_data(feature_name, test_seq, test_data)
     #which files should exist?
     for i in range(test_data.shape[0]):
         res_feature_name = f'test_res_{i}'
@@ -26,3 +26,5 @@ def test_add_individual_feature_data():
         assert len(test_dict) == 2
         #todo: add a different sequence, add the same sequence again, then check that the number of entries is correct
         #todo: check that the values/labels within the dictionary are single values
+
+#todo: add test to make sure adding an additional array works

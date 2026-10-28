@@ -122,19 +122,21 @@ class ByFeatureDatabase:
     '''
     def __init__(self, filedir: str):
         self.filedir = Path(filedir)
+        self.filedir.mkdir(parents=True, exist_ok=True)
 
-    def load_dict(self, feature_name: str):
+    def load_dict(self, filename: str):
         '''
         Opens pickled dict or creates new dict if file does not exist.
         Used to contain datasets usable for downstream ML tasks.
         '''
-        feature_file = self.filedir / f'{feature_name}.pkl'
+        feature_file = self.filedir / f'{filename}.pkl'
 
         if Path(feature_file).is_file():
             with open(feature_file, 'rb') as f:
                 return pickle.load(f)
+        else:
+            return {}
 
-        return {}
 
     def save_dict(self, feature_name: str, data_dict: dict):
         '''
@@ -149,7 +151,9 @@ class ByFeatureDatabase:
 
         temp_pkl.replace(filepath)
 
-    def add_individual_feature_data(self, data_dict: dict, feature_name: str, sequence: str, data: np.ndarray):
+
+
+    def add_individual_feature_data(self, feature_name: str, sequence: str, data: np.ndarray):
         '''
         Get a single sequence-label pair and add it to a dataset.
         If the input array has dimensions (n_res,), the values will be split out to by-residue files.
@@ -157,9 +161,6 @@ class ByFeatureDatabase:
 
         Parameters
         ---
-        data_dict: dict
-            Loaded dictionary object that can have new sequence-label pairs added or updated.
-            Keys: sequences, values: labels.
         sequence: str
             Protein sequence from a trajectory
         feature_name: str
@@ -181,14 +182,20 @@ class ByFeatureDatabase:
         assert data.shape[0] > 0, f'{feature_name} is empty'
         n_vals = data.shape[0]
 
+
         if n_vals == 1: #for by-protein features
-            data_dict[sequence] = data
+            #load dict internally based on file name
+            data_dict = self.load_dict(feature_name)
+            data_dict[sequence] = data[0]
             self.save_dict(feature_name, data_dict)
+
         elif len(sequence) == n_vals: #by-residue features
             for res in range(n_vals):
-                res_feature_name = f'{feature_name}_res_{res}'
+                res_feature_name = f'{feature_name}_{res}.pkl'
+                data_dict = self.load_dict(res_feature_name)
                 data_dict[sequence] = data[res]
                 self.save_dict(res_feature_name, data_dict)
+
 
 
 
