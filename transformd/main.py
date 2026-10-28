@@ -10,11 +10,6 @@ import factory
 import database
 import featurizer
 import features
-#from transformd import utilities
-#from transformd import factory
-#from transformd import database
-#from transformd import featurizer
-#from transformd import features
 
 
 #user-defined variables
@@ -41,14 +36,13 @@ def main():
     #loop through list of trajectories.
     #calculate features as needed
     for top, traj in traj_list:
-        print(f'Loading {top} and {traj}')
-
+        #print(f'Loading {top} and {traj}')
         features_to_run = utilities.get_features_for_traj(traj, traj_log) #list
-        print(f'Running the following features: {features_to_run}')
+        #print(f'Running the following features: {features_to_run}')
         loaded = mdengine.load_trajectory(isee_working_dir, traj, top)
-        print(loaded)
+        #print(loaded)
         seq, n_frames, n_res = features.get_traj_info(loaded)
-        print(f'Seq: {seq}, n_frames: {n_frames}, n_res: {n_res}')
+        #print(f'Seq: {seq}, n_frames: {n_frames}, n_res: {n_res}')
 
         #initialize features to add to log
         added_features = []
@@ -64,7 +58,6 @@ def main():
         md_calculator = features.MDFeatureCalculator()
         for feat_name in features_to_run:
             feature_arr = getattr(md_calculator, feat_name)(loaded)
-            print(f'{feat_name} gave back array of shape {feature_arr.shape}')
             #update sequence database, feature dictionary, and added_feature list
             seq_db.add_data(seq, feat_name, feature_arr)
             seq_db.save_pickle()
@@ -80,7 +73,6 @@ def main():
 
  # Train CNNs
 
- # Train transformer
 
  # Downstream task
 
