@@ -191,7 +191,7 @@ class ByFeatureDatabase:
 
         elif len(sequence) == n_vals: #by-residue features
             for res in range(n_vals):
-                res_feature_name = f'{feature_name}_{res}.pkl'
+                res_feature_name = f'{feature_name}_{res}'
                 data_dict = self.load_dict(res_feature_name)
                 data_dict[sequence] = data[res]
                 self.save_dict(res_feature_name, data_dict)
@@ -202,7 +202,7 @@ class ByFeatureDatabase:
 
 
 
-#CNN:
+#models:
 #get a single sequence - label value
 #apend these seq-label values to their respective files
 #split out data for each individual feature
