@@ -23,6 +23,16 @@ def test_get_trajs_in_working_dir():
         assert isinstance(traj, str), 'Trajectories is not a string.'
 
 
+def test_pipeline():
+    #todo
+    #run test.slurm
+    #check that raw_data.pkl is created, trajectory_log.pkl, and feautre_dump
+    #check that a few of the feature_dump features have 4 keys with int labels
+    #check that raw_data and trajectory_log both have 4 keys. Trajectory_log should have 14 labels for each key
+    #finally, delete all the files
+    pass
+
+
 
 
 
