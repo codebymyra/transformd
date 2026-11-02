@@ -12,6 +12,7 @@ import featurizer
 import features
 import configure
 import sys
+from isee_framework.main import Thread
 
 
 #user-defined variables
@@ -27,7 +28,7 @@ def main(settings):
     #get list of trajectories from working directory
     isee_working_dir = utilities.get_working_dir(settings.working_directory)
     traj_list= utilities.get_trajs_in_working_dir(isee_working_dir) #return list of tuples
-
+    print(f'Found {len(traj_list)} trajectories in {isee_working_dir}.', flush=True)
     #create an MD engine object for loading trajectories
     mdengine = factory.mdengine_factory(settings.md_engine) #todo: how to create an engine-specific object such as AdaptAmber? Oh. See factory.py in Atesa
 
@@ -40,7 +41,7 @@ def main(settings):
     for top, traj in traj_list:
         #print(f'Loading {top} and {traj}')
         features_to_run = utilities.get_features_for_traj(traj, traj_log) #list
-        #print(f'Running the following features: {features_to_run}')
+        print(f'Running the following features for {traj}: {features_to_run}', flush=True)
         loaded = mdengine.load_trajectory(isee_working_dir, traj, top)
         #print(loaded)
         seq, n_frames, n_res = features.get_traj_info(loaded)
@@ -65,8 +66,8 @@ def main(settings):
             seq_db.save_pickle()
             feature_agg_arr = seq_db.aggregate_data(seq, feat_name) #returns single numpy array for a feature
             feature_db.add_individual_feature_data(feat_name, seq, feature_agg_arr)
-            added_features.append(feat_name)
-        utilities.update_log_for_traj(traj, settings.log_directory, added_features)
+            #added_features.append(feat_name) #todo: delete this later as it is redundant
+            utilities.update_log_for_traj(traj, settings.log_directory, [feat_name])
 
     return f'Feature extraction completed.' #Exit Message. change when adding additional steps
 
