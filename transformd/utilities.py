@@ -51,9 +51,6 @@ def get_trajs_in_working_dir(working_dir: str):
     {'nucb_5omt_state1.rst7_WT_tleap.prmtop': ['nucb_5omt_state1.rst7_WT_0.nc']}
     '''
 
-
-    tops = []
-    trajs = []
     wd_path = get_working_dir(working_dir)
     restart_file = wd_path / 'restart.pkl' #specific to isEE
 
