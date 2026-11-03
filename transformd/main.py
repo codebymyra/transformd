@@ -18,12 +18,6 @@ from isee_framework.main import Thread
 #user-defined variables
 #todo: how to get these to interface with isEE?
 
-#working_dir = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory'
-#engine = 'amber'
-#traj_log_dir = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data'
-#md_data_dir = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data'
-#feature_data_dir = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/feature_dump'
-
 def main(settings):
     #get list of trajectories from working directory
     isee_working_dir = utilities.get_working_dir(settings.working_directory)
@@ -43,6 +37,9 @@ def main(settings):
         features_to_run = utilities.get_features_for_traj(traj, traj_log) #list
         print(f'Running the following features for {traj}: {features_to_run}', flush=True)
         loaded = mdengine.load_trajectory(isee_working_dir, traj, top)
+        if loaded is None:
+            print(f'Skipping {traj} and {top}')
+            continue
         #print(loaded)
         seq, n_frames, n_res = features.get_traj_info(loaded)
         #print(f'Seq: {seq}, n_frames: {n_frames}, n_res: {n_res}')
