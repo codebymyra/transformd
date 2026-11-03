@@ -67,9 +67,11 @@ def get_trajs_in_working_dir(working_dir: str):
         #todo: probably should add a try/except block for cases when trajectories are missing
         for top_idx, top in enumerate(top_files):
             associated_trajs = traj_files[top_idx] #e.g. [protein_0.nc, protein_1.nc]
+            #print(f'Trajs associated with {top}: {associated_trajs}')
             for traj_idx, traj in enumerate(associated_trajs):
                 top_name = f'{top}_{traj_idx}'
                 pairs.append((top_name, traj))
+                #print(pairs[-1])
 
     return pairs
 
