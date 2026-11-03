@@ -86,16 +86,19 @@ class AdaptAmber(MDEngine):
         traj_path = Path(working_dir) / traj_file
         if not top_path.exists() and not traj_path.exists():
             print(f'Neither topology nor trajectory files exist ({top_path}, {traj_path}')
+            return None
         elif not top_path.exists() and traj_path.exists():
             print(f"Trajectory file {traj_path} exists, but topology {top_path} does not.")
+            return None
         elif not traj_path.exists() and top_path.exists():
-            print(f'Topology file {top_path} exists but trajectory file does not {traj_path}')
+            print(f'Topology file {top_path} exists, but trajectory file does not {traj_path}')
+            return None
         else:
             try:
                 top = md.load_prmtop(top_path)
             except Exception as e:
                 print(f'Amber topology {top_path} could not be loaded:{e}')
-                return None#todo: o I need a return statement?
+                return None
             try:
                 traj = md.load(traj_path, top=top, stride=stride)
             except Exception as e:
