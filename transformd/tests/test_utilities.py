@@ -2,6 +2,7 @@ import os
 import tempfile
 import transformd
 from pathlib import PurePath
+import re
 
 def test_get_working_dir():
     #create a temporary directory and test to see if it exists
@@ -15,12 +16,16 @@ def test_get_trajs_in_working_dir():
     #assert list format
     #assert that each item in the list has two files
     test_working_dir = '/jumbo/burginlab/myra/transformd/transformd/tests/test_data/test_working_directory'
+    #todo: add case where there are two of the same trajectory file names
     traj_list = transformd.get_trajs_in_working_dir(test_working_dir)
     assert isinstance(traj_list, list), f'Did not return a dictionary.'
     assert len(traj_list) > 0, f'List of trajectory file pairs is empty.'
     for top, traj in traj_list:
         assert isinstance(top, str), 'Topology is not a string.'
         assert isinstance(traj, str), 'Trajectories is not a string.'
+        top_number = re.findall(r'\d+', top)[-1]
+        traj_number = re.findall(r'\d+', traj)[-1]
+        assert int(top_number) == int(traj_number)
 
 
 def test_pipeline():
