@@ -27,6 +27,7 @@ def main(settings):
     mdengine = factory.mdengine_factory(settings.md_engine) #todo: how to create an engine-specific object such as AdaptAmber? Oh. See factory.py in Atesa
 
     #create or open log file. should be dict
+    #todo: if this process is run by parallel workers, loading of the traj_log should happen newly for each trajectory rather than just once, probably.
     #todo: the way i have it is that a trajectory with the same file name will only ever be processed once. Perhaps change based on sequences and not trajectory name?
     traj_log = utilities.load_or_create_log_for_traj(settings.log_directory)
 
