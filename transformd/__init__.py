@@ -5,8 +5,5 @@ from ._version import __version__
 from .features import *
 from .utilities import *
 from ._version import __version__
-from . import main
-from . import featurizer
-from . import mdengine
-from . import factory
+from transformd import main, featurizer, mdengine, factory, database, configure
 
