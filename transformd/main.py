@@ -5,12 +5,12 @@ Will plug into isEE.
 
 This script handles featurization of MD trajectories for preparation for ML.
 '''
-import utilities
-import factory
-import database
-import featurizer
-import features
-import configure
+from transformd import utilities
+from transformd import factory
+from transformd import database
+from transformd import featurizer
+from transformd import features
+from transformd import configure
 import sys
 from isee_framework.main import Thread
 
