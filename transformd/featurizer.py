@@ -10,7 +10,7 @@ from pathlib import Path
 import pickle
 import numpy as np
 from datetime import datetime
-from database import SequenceDatabase
+from transformd.database import SequenceDatabase
 
 class ArrayDatabase:
     '''
