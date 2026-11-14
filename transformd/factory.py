@@ -3,8 +3,8 @@ From ATESA.
 Factory script for obtaining the desired interfaces from the various interface scripts.
 """
 
-import mdengine
-from models import sequence_featurizer 
+from transformd import mdengine
+from transformd.models import sequence_featurizer 
 
 def mdengine_factory(mdengine_toolkit):
     """
@@ -49,7 +49,7 @@ def sequence_featurizer_factory(featurizer_toolkit):
     featurizer_toolkits = {
         'onehot': sequence_featurizer.OneHot(),
         'physicochemical': sequence_featurizer.Physicochemical(),
-        'esm2': sequence_featurizer.ESM2(),
+        #add esm2 later
     }
 
     if featurizer_toolkit not in featurizer_toolkits.keys():
