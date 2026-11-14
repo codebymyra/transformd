@@ -6,8 +6,8 @@ Misc. utility functions
 from pathlib import Path
 import pickle
 from isee_framework.main import Thread
-import features
-#from transformd import features
+#import features
+from transformd import features
 import re
 
 def get_working_dir(working_dir: str):
