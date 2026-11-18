@@ -123,7 +123,7 @@ class MDFeatureCalculator(object):
             np.add.at(hbond_count[frame_idx], donors, 1)
             np.add.at(hbond_count[frame_idx], acceptors, 1)
 
-        return np.mean(hbond_count, axis=0) #(n_frames, n_res)
+        return np.mean(hbond_count, axis=0) / n_res #(n_frames, n_res)
 
 
     def hbond_ks(self, traj, energy_threshold=-0.5):
@@ -149,7 +149,7 @@ class MDFeatureCalculator(object):
             np.add.at(hbond_count[frame_idx], donors, 1)
             np.add.at(hbond_count[frame_idx], acceptors, 1)
 
-        return np.mean(hbond_count, axis=0) #(n_frames, n_res)
+        return np.mean(hbond_count, axis=0) / n_res #(n_frames, n_res)
 
 
     def hbond_bh(self, traj):
@@ -175,7 +175,7 @@ class MDFeatureCalculator(object):
 
         by_res_hbond_bh = hbond_count[:,1]  #take only count values
 
-        return by_res_hbond_bh # (n_res,)
+        return by_res_hbond_bh / n_res # (n_res,)
 
 
 
@@ -210,7 +210,7 @@ class MDFeatureCalculator(object):
             contact_count[active_frames, res1] += 1
             contact_count[active_frames, res2] += 1
 
-        return np.mean(contact_count, axis=0) # n_frames, n_residues
+        return np.mean(contact_count, axis=0) / n_res # n_frames, n_residues
 
     def res_rmsd(self, traj):
         '''
