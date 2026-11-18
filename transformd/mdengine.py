@@ -115,6 +115,6 @@ class AdaptAmber(MDEngine):
         sele_traj = traj.atom_slice(atom_sele)
 
         #superpose trajectory
-        traj_superpose = md.Trajectory.superpose(sele_traj, sele_traj, frame=0)
+        #traj_superpose = md.Trajectory.superpose(sele_traj, sele_traj, frame=0)
 
-        return traj_superpose
+        return sele_traj
