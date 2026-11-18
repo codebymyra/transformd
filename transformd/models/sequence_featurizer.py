@@ -9,8 +9,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 import torch
 
-wt_seq = ''
-seq_len = len(wt_seq)
+
 
 class SequenceFeaturizer(ABC):
     '''
@@ -26,7 +25,7 @@ class SequenceFeaturizer(ABC):
         pass
 
     @abstractmethod
-    def get_tensor(self, seq: str):
+    def __call__(self, seq: str):
         '''
         Parameters
         ---
@@ -40,19 +39,19 @@ class SequenceFeaturizer(ABC):
         pass
 
 class OneHot(SequenceFeaturizer):
-    def __init__(self, seq_len: int):
-        self.seq_len = seq_len
+    def __init__(self):
         self.vocab = {aa: i for i, aa in enumerate('ARNDCQEGHILKMFPSTWYV')}
 
     @property
     def feature_dim(self):
         return len(self.vocab)
 
-    def get_tensor(self, seq: str):
+    def __call__(self, seq: str):
         '''
         Returns featurized sequence tensor of dim (seq length, 21) for 20 canonical amino acids + 1 non-canonical
         '''
-        tensor = torch.zeros(self.seq_len, self.feature_dim)
+        seq_len = len(seq)
+        tensor = torch.zeros(seq_len, self.feature_dim)
         for i, aa in enumerate(seq.upper()):
             if aa in self.vocab:
                 tensor[i, self.vocab[aa]] = 1.0
@@ -64,25 +63,50 @@ class Physicochemical(SequenceFeaturizer):
     Functions as an enrichment to a one-hot type embedding.
     Currently, these embeddings are of dimension (39, 20) to represent 19 PCA components and a 1-hot 20 AA encoding.
     '''
-    def __init__(self, seq_len: int):
-        self.seq_len = seq_len
+    def __init__(self):
         self.vocab = {aa: i for i, aa in enumerate('ARNDCQEGHILKMFPSTWYV')} #must be in this order for aaindex1_pca
-        self.embeddings = np.load('data/aaindex1_pca.npy') #dimensions (39, 20)
+        #todo: change the file path
+        self.embeddings = torch.from_numpy(np.load('/jumbo/burginlab/myra/transformd/transformd/data/aaindex1_pca.npy')) #dimensions (39, 20)
 
     @property
     def feature_dim(self):
         return self.embeddings.shape[0]
 
-    def get_tensor(self, seq: str):
+    def __call__(self, seq: str):
         '''
         Returns featurized sequence tensor of dim (seq length, 39)
         '''
-        tensor = torch.zeros(self.seq_len, self.feature_dim)
+        seq_len = len(seq)
+        tensor = torch.zeros(seq_len, self.feature_dim)
         for i, aa in enumerate(seq.upper()):
             if aa in self.vocab:
-                tensor[i] = self.embeddings[:, self.vocab[aa]]
-
+                #tensor[i] = torch.from_numpy(self.embeddings[:, self.vocab[aa]])
+                tensor[i] = self.embeddings[:, self.vocab[aa]] # (seq_len, feature_dim). Provides features to each AA in the sequence 
         return tensor
+
+#seq = 'ASDF'
+#transform = Physicochemical()
+#print(transform.__call__(seq))
+#print(transform.__call__(seq).shape)
+#print(transform.feature_dim)
+'''
+class ESM2(SequenceFeaturizer):
+    def __init__(self, seq_len: int):
+        self.seq_len = seq_len
+        #todo: add embedding?
+
+    @property
+    def feature_dim(self):
+        # todo
+        pass
+
+    def __call__(self, seq: str):
+        # todo
+        pass
+'''
+    
+
+         
 
 
 
