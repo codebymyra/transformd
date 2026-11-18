@@ -16,7 +16,7 @@ from isee_framework.main import Thread
 
 
 #user-defined variables
-#todo: how to get these to interface with isEE?
+#TODO: how to get these to interface with isEE?
 
 def main(settings):
     #get list of trajectories from working directory
@@ -24,11 +24,11 @@ def main(settings):
     traj_list= utilities.get_trajs_in_working_dir(isee_working_dir) #return list of tuples
     print(f'Found {len(traj_list)} trajectories in {isee_working_dir}.', flush=True)
     #create an MD engine object for loading trajectories
-    mdengine = factory.mdengine_factory(settings.md_engine) #todo: how to create an engine-specific object such as AdaptAmber? Oh. See factory.py in Atesa
+    mdengine = factory.mdengine_factory(settings.md_engine) #TODO: how to create an engine-specific object such as AdaptAmber? Oh. See factory.py in Atesa
 
     #create or open log file. should be dict
-    #todo: if this process is run by parallel workers, loading of the traj_log should happen newly for each trajectory rather than just once, probably.
-    #todo: the way i have it is that a trajectory with the same file name will only ever be processed once. Perhaps change based on sequences and not trajectory name?
+    #TODO: if this process is run by parallel workers, loading of the traj_log should happen newly for each trajectory rather than just once, probably.
+    #TODO: the way i have it is that a trajectory with the same file name will only ever be processed once. Perhaps change based on sequences and not trajectory name?
     traj_log = utilities.load_or_create_log_for_traj(settings.log_directory)
 
     #loop through list of trajectories.
@@ -60,10 +60,10 @@ def main(settings):
         for feat_name in features_to_run:
             feature_arr = getattr(md_calculator, feat_name)(loaded)
             #update sequence database, feature dictionary, and added_feature list
-            seq_db.add_data(seq, feat_name, feature_arr)
+            seq_db.add_data(seq, feat_name, feature_arr) #nested dictionary: {seq1: {feat1: [], feat2: []}, seq2: {feat1: [], feat2: []}}
             seq_db.save_pickle()
             feature_agg_arr = seq_db.aggregate_data(seq, feat_name) #returns single numpy array for a feature
-            feature_db.add_individual_feature_data(feat_name, seq, feature_agg_arr)
+            feature_db.add_individual_feature_data(feat_name, seq, feature_agg_arr) #from featurizer. saves individual feeature data files
             #added_features.append(feat_name) #todo: delete this later as it is redundant
             utilities.update_log_for_traj(traj, settings.log_directory, [feat_name])
 
