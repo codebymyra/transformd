@@ -37,7 +37,7 @@ def main(settings):
         #print(f'Loading {top} and {traj}')
         features_to_run = utilities.get_features_for_traj(traj, traj_log) #list
         print(f'Running the following features for {traj}: {features_to_run}', flush=True)
-        loaded = mdengine.load_trajectory(isee_working_dir, traj, top)
+        loaded = mdengine.load_trajectory(isee_working_dir, traj, top, stride=settings.stride, mask=settings.mask)
         if loaded is None:
             print(f'Skipping {traj} and {top}')
             continue
