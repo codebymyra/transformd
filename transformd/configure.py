@@ -45,6 +45,8 @@ def configure(input_file, user_working_directory=''):
         feature_data_directory: str
         log_directory: str
         md_data_directory: str
+        stride: int = 1
+        mask: str = 'protein'
         # etc, etc, ...
 
     # Import config file line-by-line using exec()
