@@ -62,7 +62,7 @@ class AdaptAmber(MDEngine):
     Adapter class for Amber MDEngine.
     '''
 
-    def load_trajectory(self, working_dir: str, traj_file: str, top_file: str, stride=1):
+    def load_trajectory(self, working_dir: str, traj_file: str, top_file: str, stride=1, mask='protein'):
         '''
         Returns loaded trajectory.
 
@@ -76,6 +76,8 @@ class AdaptAmber(MDEngine):
             Name of topology filepath.
         stride: int
             Load every nth frame depending on user input settings.
+        mask: str
+            Mask for loading a specific subset of atoms/residues. Default is 'protein'
 
         Returns
         ---
@@ -110,8 +112,7 @@ class AdaptAmber(MDEngine):
                     print(f'Amber trajectory {traj_path} could not be loaded: {e}. Skipping.')
                     return None
 
-        #select only protein atoms
-        atom_sele = traj.topology.select('protein')
+        atom_sele = traj.topology.select(mask)
         sele_traj = traj.atom_slice(atom_sele)
 
         #superpose trajectory
